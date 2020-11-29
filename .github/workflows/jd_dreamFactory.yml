@@ -6,7 +6,7 @@ name: jd_dreamFactory
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 16 * * *' #北京时间0点运行，action会有延迟
+    - cron: '20 * * * *' #北京时间0点运行，action会有延迟
   watch:
     types: started
   repository_dispatch:

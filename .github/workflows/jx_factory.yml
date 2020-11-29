@@ -6,7 +6,7 @@ name: jx_factory
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 16 * * *' #北京时间0点运行，action会有延迟
+    - cron: '10 * * * *' #北京时间0点运行，action会有延迟
   watch:
     types: started
   repository_dispatch:
