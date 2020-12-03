@@ -1,16 +1,16 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: jx_story
+name: jd_jxstory
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 * * * *' #北京时间0点运行，action会有延迟
+    - cron: '0 16 * * *' # 北京时间0点运行，action会有延迟
   watch:
     types: started
   repository_dispatch:
-    types: jx_story
+    types: jd_jxstory
 jobs:
   build:
 
@@ -36,7 +36,7 @@ jobs:
           npm install
       - name: '运行 【京喜金牌厂长】'
         run: |
-          node jx_story.js
+          node jd_jxstory.js
         env:
           JD_COOKIE: ${{ secrets.JD_COOKIE }}
           JD_DEBUG: ${{ secrets.JD_DEBUG }}
