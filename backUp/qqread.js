@@ -1,6 +1,15 @@
 /*
+******************************************************************************
  改用，nodejs云端专用。可N个账号。by；lxk0301
-
+ 一个账号需三个环境变量/secret
+ 分别为 QQ_READ_HEADER_VAL   QQ_READ_TIME_URL_VAL   QQ_READ_TIME_HEADER_VAL
+ 多个账号  对应三个环境变量/secret 使用@符号或者换行隔开
+ iOS可使用BoxJs可使用此订阅修改复制所需的环境变量 https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/mySelf.boxjs.json
+ 环境变量与BoxJs里面对应关系
+ QQ_READ_HEADER_VAL  ------》   qqreadhd
+ QQ_READ_TIME_URL_VAL  ------》   qqreadtimeurl
+ QQ_READ_TIME_HEADER_VAL  ------》   qqreadtimehd
+ *****************************************************************************************************************
 ziye
 本人github地址     https://github.com/ziye12/JavaScript 
 转载请备注个名字，谢谢
@@ -33,58 +42,57 @@ hostname=mqqapi.reader.qq.com
 ############## 圈x
 
 #企鹅读书获取cookie
-https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init url script-request-header https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js
+https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init url script-request-header https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js
 
 #企鹅读书获取时长cookie
-https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid? url script-request-header https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js
+https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid? url script-request-header https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js
 
 
 ############## loon
 
 //企鹅读书获取cookie
-http-request https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init script-path=https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js,requires-header=true, tag=企鹅读书获取cookie 
+http-request https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init script-path=https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js,requires-header=true, tag=企鹅读书获取cookie
 
 //企鹅读书获取时长cookie
-http-request https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid? script-path=https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js, requires-header=true, tag=企鹅读书获取时长cookie
+http-request https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid? script-path=https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js, requires-header=true, tag=企鹅读书获取时长cookie
 
 
 ############## surge
 
 //企鹅读书获取cookie
-企鹅读书 = type=http-request,pattern=https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init,script-path=https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js, requires-header=true
+企鹅读书 = type=http-request,pattern=https:\/\/mqqapi\.reader\.qq\.com\/mqq\/user\/init,script-path=https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js, requires-header=true
 
 //企鹅读书获取时长cookie
-企鹅读书 = type=http-request,pattern=https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid?,script-path=https://raw.githubusercontent.com/ziye12/JavaScript/master/qqread.js, requires-header=true
+企鹅读书 = type=http-request,pattern=https:\/\/mqqapi\.reader\.qq\.com\/mqq\/addReadTimeWithBid?,script-path=https://raw.githubusercontent.com/lxk0301/jd_scripts/master/backUp/qqread.js, requires-header=true
 
 
 */
 
 const jsname = '企鹅读书'
 const $ = Env(jsname)
-
+let task = '', config, ssr2 = '', wktime;
 console.log(`\n========= 脚本执行时间(TM)：${new Date(new Date().getTime() + 0 * 60 * 60 * 1000).toLocaleString('zh', {hour12: false})} =========\n`)
 
-const logs = 0;   //0为关闭日志，1为开启
+const logs = 1;   //0为关闭日志，1为开启
 const notifyInterval = 3
 //0为关闭通知，1为所有通知，2为宝箱领取成功通知，3为宝箱每15次通知一次
 
-const jbid = 1//换号则修改这个值,默认账号1
 const dd = 1//单次任务延迟,默认1秒
 const TIME = 30//单次时长上传限制，默认5分钟
 const maxtime = 20//每日上传时长限制，默认20小时
 const wktimess = 1200//周奖励领取标准，默认1200分钟
 var tz = ''
 const qqreadurlVal = `https://mqqapi.reader.qq.com/mqq/user/init`;
-// const qqreadurlKey = 'qqreadurl' + jbid
+const qqreadurlKey = 'qqreadurl'
 // const qqreadurlVal = $.getdata(qqreadurlKey)
 
-const qqreadheaderKey = 'qqreadhd' + jbid
+const qqreadheaderKey = 'qqreadhd'
 let qqreadheaderVal = $.getdata(qqreadheaderKey)
 
-const qqreadtimeurlKey = 'qqreadtimeurl' + jbid
+const qqreadtimeurlKey = 'qqreadtimeurl'
 let qqreadtimeurlVal = $.getdata(qqreadtimeurlKey)
 
-const qqreadtimeheaderKey = 'qqreadtimehd' + jbid
+const qqreadtimeheaderKey = 'qqreadtimehd'
 let qqreadtimeheaderVal = $.getdata(qqreadtimeheaderKey)
 //云函数使用在下面填写
 let QQ_READ_COOKIES = [
@@ -99,9 +107,9 @@ function getNodeCookie() {
   if ($.isNode()) {
     let QQ_READ_HEADER_VAL = [], QQ_READ_TIME_URL_VAL = [], QQ_READ_TIME_HEADER_VAL = [];
     if (process.env.QQ_READ_HEADER_VAL) {
-      if (process.env.QQ_READ_HEADER_VAL.indexOf('&') > -1) {
-        console.log(`您的QQ_READ_HEADER_VAL选择的是用&隔开\n`)
-        QQ_READ_HEADER_VAL = process.env.QQ_READ_HEADER_VAL.split('&');
+      if (process.env.QQ_READ_HEADER_VAL.indexOf('@') > -1) {
+        console.log(`您的QQ_READ_HEADER_VAL选择的是用@隔开\n`)
+        QQ_READ_HEADER_VAL = process.env.QQ_READ_HEADER_VAL.split('@');
       } else if (process.env.QQ_READ_HEADER_VAL.indexOf('\n') > -1) {
         console.log(`您的QQ_READ_HEADER_VAL选择的是用换行隔开\n`)
         QQ_READ_HEADER_VAL = process.env.QQ_READ_HEADER_VAL.split('\n');
@@ -109,11 +117,12 @@ function getNodeCookie() {
         QQ_READ_HEADER_VAL = [process.env.QQ_READ_HEADER_VAL];
       }
       // QQ_READ_HEADER_VAL = [...new Set(QQ_READ_HEADER_VAL)]
+      // $.log(QQ_READ_HEADER_VAL)
     }
     if (process.env.QQ_READ_TIME_URL_VAL) {
-      if (process.env.QQ_READ_TIME_URL_VAL.indexOf('&') > -1) {
-        console.log(`您的QQ_READ_TIME_URL_VAL选择的是用&隔开\n`)
-        QQ_READ_TIME_URL_VAL = process.env.QQ_READ_TIME_URL_VAL.split('&');
+      if (process.env.QQ_READ_TIME_URL_VAL.indexOf('@') > -1) {
+        console.log(`您的QQ_READ_TIME_URL_VAL选择的是用@隔开\n`)
+        QQ_READ_TIME_URL_VAL = process.env.QQ_READ_TIME_URL_VAL.split('@');
       } else if (process.env.QQ_READ_HEADER_VAL.indexOf('\n') > -1) {
         console.log(`您的QQ_READ_TIME_URL_VAL选择的是用换行隔开\n`)
         QQ_READ_TIME_URL_VAL = process.env.QQ_READ_TIME_URL_VAL.split('\n');
@@ -123,9 +132,9 @@ function getNodeCookie() {
       // QQ_READ_TIME_URL_VAL = [...new Set(QQ_READ_TIME_URL_VAL)]
     }
     if (process.env.QQ_READ_TIME_HEADER_VAL) {
-      if (process.env.QQ_READ_TIME_HEADER_VAL.indexOf('&') > -1) {
-        console.log(`您的QQ_READ_TIME_HEADER_VAL选择的是用&隔开\n`)
-        QQ_READ_TIME_HEADER_VAL = process.env.QQ_READ_TIME_HEADER_VAL.split('&');
+      if (process.env.QQ_READ_TIME_HEADER_VAL.indexOf('@') > -1) {
+        console.log(`您的QQ_READ_TIME_HEADER_VAL选择的是用@隔开\n`)
+        QQ_READ_TIME_HEADER_VAL = process.env.QQ_READ_TIME_HEADER_VAL.split('@');
       } else if (process.env.QQ_READ_TIME_HEADER_VAL.indexOf('\n') > -1) {
         console.log(`您的QQ_READ_TIME_HEADER_VAL选择的是用换行隔开\n`)
         QQ_READ_TIME_HEADER_VAL = process.env.QQ_READ_TIME_HEADER_VAL.split('\n');
@@ -143,6 +152,7 @@ function getNodeCookie() {
         "qqreadtimeheaderVal": QQ_READ_TIME_HEADER_VAL[i] || ""
       })
     }
+    // console.log(`${JSON.stringify(QQ_READ_COOKIES)}`)
   }
 }
 //CK运行
@@ -152,7 +162,8 @@ if (isGetCookie) {
 } else {
   !(async () => {
     await getNodeCookie();
-    await all();
+    await QQ_READ();
+    // await all();
   })()
       .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -174,7 +185,7 @@ function GetCookie() {
     // if (qqreadbodyVal) $.setdata(qqreadbodyVal, qqreadbodyKey)
     // $.log(`[${jsname}] 获取阅读: 成功,qqreadbodyVal: ${qqreadbodyVal}`)
 
-
+    $.setdata(qqreadurlVal, qqreadurlKey);
     const qqreadheaderVal = JSON.stringify($request.headers)
     if (qqreadheaderVal) $.setdata(qqreadheaderVal, qqreadheaderKey)
     $.log(`[${jsname}] 获取Cookie: 成功,qqreadheaderVal: ${qqreadheaderVal}`)
@@ -193,81 +204,66 @@ function GetCookie() {
   }
   $.done();
 }
-
-
-function all() {
-  for (let item of QQ_READ_COOKIES) {
-    if (!item["qqreadheaderVal"] || !item['qqreadtimeurlVal'] || !item['qqreadtimeheaderVal']) {
-       $.log(`账号暂未提供脚本执行所需的cookie`);
+async function QQ_READ() {
+  for (let i = 0; i < QQ_READ_COOKIES.length; i++) {
+    $.log(`\n*************开始QQ账号${i + 1}**************\n`);
+    tz = '';
+    if (!QQ_READ_COOKIES[i]["qqreadheaderVal"] || !QQ_READ_COOKIES[i]['qqreadtimeurlVal'] || !QQ_READ_COOKIES[i]['qqreadtimeheaderVal']) {
+      $.log(`账号${i + 1}暂未提供脚本执行所需的cookie`);
       continue
     }
-    qqreadheaderVal = item['qqreadheaderVal'];
-    qqreadtimeurlVal = item['qqreadtimeurlVal'];
-    qqreadtimeheaderVal = item['qqreadtimeheaderVal'];
-    for (let i = 0; i < 18; i++) {
-      (function (i) {
-        setTimeout(function () {
-              if (i == 0)
-                qqreadinfo();//用户名
+    qqreadheaderVal = QQ_READ_COOKIES[i]['qqreadheaderVal'];
+    qqreadtimeurlVal = QQ_READ_COOKIES[i]['qqreadtimeurlVal'];
+    qqreadtimeheaderVal = QQ_READ_COOKIES[i]['qqreadtimeheaderVal'];
+    await qqreadinfo();//用户名
+    // await $.wait(2000)
+    await qqreadconfig();//时长查询
+    // await $.wait(2000)
+    await qqreadtask();//任务列表
 
-              else if (i == 1)
-                qqreadconfig();//时长查询
-
-              else if (i == 2)
-                qqreadtask();//任务列表
-
-              else if (i == 3 && task.data.taskList[0].doneFlag == 0)
-                qqreadsign();//金币签到
-
-              else if (i == 4 && task.data.treasureBox.doneFlag == 0)
-                qqreadbox();//宝箱
-
-              else if (i == 5 && task.data.taskList[2].doneFlag == 0)
-                qqreadssr1();//阅读金币1
-
-              else if (i == 6 && config.data.pageParams.todayReadSeconds / 3600 <= maxtime)
-                qqreadtime();//上传时长
-
-              else if (i == 7 && task.data.taskList[0].doneFlag == 0)
-                qqreadtake();//阅豆签到
-
-              else if (i == 8 && task.data.taskList[1].doneFlag == 0)
-                qqreaddayread();//阅读任务
-
-              else if (i == 9 && task.data.taskList[2].doneFlag == 0)
-                qqreadssr2();//阅读金币2
-
-              else if (i == 10 && task.data.taskList[3].doneFlag == 0)
-                qqreadvideo();//视频任务
-
-              else if (i == 11 && task.data.taskList[0].doneFlag == 0)
-                qqreadsign2();//签到翻倍
-
-              else if (i == 12 && task.data.treasureBox.videoDoneFlag == 0)
-                qqreadbox2();//宝箱翻倍
-
-              else if (i == 13 && task.data.taskList[2].doneFlag == 0)
-                qqreadssr3();//阅读金币3
-
-              else if (i == 14)
-                qqreadwktime();//周时长查询
-
-              else if (i == 15)
-                qqreadpick();//领周时长奖励
-
-              else if (i == 16)
-                showmsg();//通知
-
-              else if (i == 17)
-                $.done();//结束
-
-            }
-            , (i + 1) * dd * 1000);
-      })(i)
+    if (task.data.taskList[0].doneFlag == 0) {
+      // await $.wait(2000)
+      await qqreaddayread();//阅读任务
     }
+    if (task.data.taskList[2].doneFlag == 0) {
+      // await $.wait(2000)
+      await qqreadsign();//金币签到
+      // await $.wait(2000)
+      await qqreadtake();//阅豆签到
+      // await $.wait(2000)
+      await qqreadsign2();//签到翻倍
+    }
+
+    if (task.data.treasureBox.doneFlag == 0) {
+      // await $.wait(2000)
+      await qqreadbox();//宝箱
+    }
+    if (task.data.taskList[1].doneFlag == 0) {
+      // await $.wait(2000)
+      await qqreadssr1();//阅读金币1
+      await $.wait(3000)
+      await qqreadssr2();//阅读金币2
+      await $.wait(5000)
+      await qqreadssr3();//阅读金币3
+    }
+    if (task.data.taskList[3].doneFlag == 0) {
+      // await $.wait(2000)
+      await qqreadvideo();//视频奖励
+    }
+    if (task.data.treasureBox.videoDoneFlag == 0) {
+      // await $.wait(2000)
+      await qqreadbox2();//宝箱翻倍
+    }
+    if (config.data.pageParams.todayReadSeconds / 3600 <= maxtime) {
+      // await $.wait(2000)
+      await qqreadtime();
+    }
+
+    await qqreadwktime();//周时长查询
+    await qqreadpick();//领周时长奖励
+    await showmsg();//通知
   }
 }
-
 
 //任务列表
 function qqreadtask() {
@@ -354,7 +350,7 @@ function qqreadinfo() {
     };
     $.get(toqqreadinfourl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 用户名: ${data}`)
-      info = JSON.parse(data)
+      const info = JSON.parse(data)
       tz +=
           '【用户信息】:' + info.data.user.nickName + '\n'
 
@@ -374,7 +370,7 @@ function qqreadtake() {
     };
     $.post(toqqreadtakeurl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 阅豆签到: ${data}`)
-      take = JSON.parse(data)
+      let take = JSON.parse(data)
       if (take.data.takeTicket > 0) {
         tz +=
             '【阅豆签到】:获得' + take.data.takeTicket + '豆\n'
@@ -416,12 +412,9 @@ function qqreadtime() {
     };
 
     $.get(toqqreadtimeurl, (error, response, data) => {
-      if (logs) $.log(`${jsname}, 阅读时长: ${data}`)
-      time = JSON.parse(data)
-      if (time.code == 0)
-        tz += '【阅读时长】:上传' + TIME / 6 + '分钟\n'
-
-
+      if (logs) $.log(`${jsname}, qqreadtime-阅读时长: ${data}`)
+      let time = JSON.parse(data)
+      if (time && time.code == 0) tz += '【阅读时长】:上传' + TIME / 6 + '分钟\n'
       resolve()
     })
   })
@@ -440,7 +433,7 @@ function qqreadssr1() {
 
       $.get(toqqreadssr1url, (error, response, data) => {
         if (logs) $.log(`${jsname}, 金币奖励1: ${data}`)
-        ssr1 = JSON.parse(data)
+        let ssr1 = JSON.parse(data)
         if (ssr1.data.amount > 0)
           tz += '【阅读金币1】获得' + ssr1.data.amount + '金币\n'
 
@@ -448,6 +441,7 @@ function qqreadssr1() {
         resolve()
       })
     }
+    resolve()
   })
 }
 
@@ -465,12 +459,13 @@ function qqreadssr2() {
       $.get(toqqreadssr2url, (error, response, data) => {
         if (logs) $.log(`${jsname}, 金币奖励2: ${data}`)
         ssr2 = JSON.parse(data)
-        if (ssr2.data.amount > 0)
-          tz += '【阅读金币2】获得' + ssr2.data.amount + '金币\n'
-
+        if (ssr2.code === 0) {
+          if (ssr2.data.amount > 0) tz += '【阅读金币2】获得' + ssr2.data.amount + '金币\n'
+        }
         resolve()
       })
     }
+    resolve()
   })
 }
 
@@ -488,14 +483,14 @@ function qqreadssr3() {
 
       $.get(toqqreadssr3url, (error, response, data) => {
         if (logs) $.log(`${jsname}, 金币奖励3: ${data}`)
-        ssr3 = JSON.parse(data)
-        if (ssr3.data.amount > 0)
-          tz += '【阅读金币3】获得' + ssr3.data.amount + '金币\n'
-
-
+        let ssr3 = JSON.parse(data)
+        if (ssr3.code === 0) {
+          if (ssr3.data.amount > 0) tz += '【阅读金币3】获得' + ssr3.data.amount + '金币\n'
+        }
         resolve()
       })
     }
+    resolve()
   })
 }
 
@@ -510,7 +505,7 @@ function qqreadsign() {
     };
     $.get(toqqreadsignurl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 金币签到: ${data}`)
-      sign = JSON.parse(data)
+      let sign = JSON.parse(data)
 
       if (sign.data.videoDoneFlag) {
         tz +=
@@ -534,7 +529,7 @@ function qqreadsign2() {
     };
     $.get(toqqreadsign2url, (error, response, data) => {
       if (logs) $.log(`${jsname}, 金币签到翻倍: ${data}`)
-      sign2 = JSON.parse(data)
+      let sign2 = JSON.parse(data)
 
       if (sign2.code == 0) {
         tz +=
@@ -557,7 +552,7 @@ function qqreaddayread() {
     };
     $.get(toqqreaddayreadurl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 每日阅读: ${data}`)
-      dayread = JSON.parse(data)
+      let dayread = JSON.parse(data)
       if (dayread.code == 0) {
         tz +=
             '【每日阅读】:获得' + dayread.data.amount + '金币\n'
@@ -580,7 +575,7 @@ function qqreadvideo() {
     };
     $.get(toqqreadvideourl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 视频奖励: ${data}`)
-      video = JSON.parse(data)
+      let video = JSON.parse(data)
 
       if (video.code == 0) {
         tz +=
@@ -606,7 +601,7 @@ function qqreadbox() {
     };
     $.get(toqqreadboxurl, (error, response, data) => {
       if (logs) $.log(`${jsname}, 宝箱奖励: ${data}`)
-      box = JSON.parse(data)
+      const box = JSON.parse(data)
 
       if (box.data.count >= 0) {
         tz +=
@@ -631,7 +626,7 @@ function qqreadbox2() {
     };
     $.get(toqqreadbox2url, (error, response, data) => {
       if (logs) $.log(`${jsname}, 宝箱奖励翻倍: ${data}`)
-      box2 = JSON.parse(data)
+      let box2 = JSON.parse(data)
 
       if (box2.code == 0) {
         tz +=
@@ -656,11 +651,9 @@ function qqreadwktime() {
     };
 
     $.get(toqqreadwktimeurl, (error, response, data) => {
-      if (logs) $.log(`${jsname}, 阅读时长: ${data}`)
+      if (logs) $.log(`${jsname}, qqreadwktime 阅读时长: ${data}`)
       wktime = JSON.parse(data)
-      if (wktime.code == 0)
-        tz += '【本周阅读时长】:' + wktime.data.readTime + '分钟\n'
-
+      if (wktime.code == 0) tz += '【本周阅读时长】:' + wktime.data.readTime + '分钟\n'
       resolve()
     })
   })
@@ -678,7 +671,7 @@ function qqreadpick() {
     if (wktime.data.readTime >= wktimess) {
       $.get(toqqreadpickurl, (error, response, data) => {
         if (logs) $.log(`${jsname},周阅读时长奖励任务: ${data}`)
-        pick = JSON.parse(data)
+        let pick = JSON.parse(data)
         if (pick.data[7].isPick == true)
           tz += '【周时长奖励】:已全部领取\n'
         for (let i = 0; i < pick.data.length; i++) {
@@ -692,7 +685,7 @@ function qqreadpick() {
             };
             $.get(toqqreadPackageurl, (error, response, data) => {
               if (logs) $.log(`${jsname}, 领周阅读时长: ${data}`)
-              Package = JSON.parse(data)
+              let Package = JSON.parse(data)
               if (Package.code == 0)
                 tz += '【周时长奖励' + (i + 1) + '】:领取' + Packageid[i] + '阅豆\n'
             })
@@ -703,22 +696,25 @@ function qqreadpick() {
       })
       resolve()
     }
+    resolve()
   })
 }
 
 
 function showmsg() {
-  console.log(tz)
+  return new Promise(async resolve => {
+    console.log(tz)
 
-  if (notifyInterval == 1)
-    $.msg(jsname, '', tz)//显示所有通知
+    if (notifyInterval == 1)
+      $.msg(jsname, '', tz)//显示所有通知
 
-  else if (notifyInterval == 2 && task.data.treasureBox.doneFlag == 0)
-    $.msg(jsname, '', tz)//宝箱领取成功通知
+    else if (notifyInterval == 2 && task.data.treasureBox.doneFlag == 0)
+      $.msg(jsname, '', tz)//宝箱领取成功通知
 
-  else if (notifyInterval == 3 && task.data.treasureBox.count == 0 || task.data.treasureBox.count == 15 || task.data.treasureBox.count == 30 || task.data.treasureBox.count == 45 || task.data.treasureBox.count == 60)
-    $.msg(jsname, '', tz)//宝箱每15次通知一次
-
+    else if (notifyInterval == 3 && task.data.treasureBox.count == 0 || task.data.treasureBox.count == 15 || task.data.treasureBox.count == 30 || task.data.treasureBox.count == 45 || task.data.treasureBox.count == 60)
+      $.msg(jsname, '', tz)//宝箱每15次通知一次
+    resolve()
+  })
 }
 
 
