@@ -6,7 +6,7 @@ name: jd_jxnc
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 1,4,10 * * *' #北京时间0点运行，action会有延迟
+    - cron: '0 0,3,9 * * *' #北京时间0点运行，action会有延迟
   watch:
     types: started
   repository_dispatch:
