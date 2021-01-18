@@ -168,7 +168,7 @@ async function jdJoySteal() {
         helpFriendsFeed()//给好友喂食
       ])
     }
-  } else {
+  } finally {
     message += `${$.getFriendsData && $.getFriendsData.errorMessage}\n`;
   }
 }
