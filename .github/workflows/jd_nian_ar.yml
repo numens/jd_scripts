@@ -34,7 +34,7 @@ jobs:
       - name: npm install
         run: |
           npm install
-      - name: '运行 【京东炸年兽AR】'
+      - name: '运行 【京-东-炸-年-兽-AR】'
         run: |
           node jd_nian_ar.js
         env:
