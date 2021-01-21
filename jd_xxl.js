@@ -1,8 +1,8 @@
 /*
  * @Author: shylocks https://github.com/shylocks
  * @Date: 2021-01-17 16:25:41
- * @Last Modified by:   shylocks
- * @Last Modified time: 2021-01-18 18:25:41
+ * @Last Modified by: liuhaoxing
+ * @Last Modified time: 2021-01-21 14:19:42
  */
 /*
 东东爱消除，完成所有任务+每日挑战
@@ -43,7 +43,7 @@ if ($.isNode()) {
   })
   if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {
   };
-  if(JSON.stringify(process.env).indexOf('GITHUB')>-1) process.exit(0)
+//   if(JSON.stringify(process.env).indexOf('GITHUB')>-1) process.exit(0)
 } else {
   let cookiesData = $.getdata('CookiesJD') || "[]";
   cookiesData = jsonParse(cookiesData);
