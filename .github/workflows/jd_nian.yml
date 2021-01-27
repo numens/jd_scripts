@@ -6,7 +6,7 @@ name: 京-东-炸-年-兽
 on:
   workflow_dispatch:
   schedule:
-    - cron: '50 23 * * *' #北京时间7点50运行，action会有延迟
+    - cron: '0 1,4,12 * * *' #0 9,12,20 * * *
   watch:
     types: started
   repository_dispatch:
